@@ -1,13 +1,7 @@
-require('dotenv').config();
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
-// Configuração da IA
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const app = express();
 const PORT = 3000;
@@ -16,125 +10,83 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// --- BANCO DE DADOS ---
 const db = new sqlite3.Database('./financas.db', (err) => {
-    if (err) console.error(err.message);
-    console.log('Conectado ao banco de dados SQLite.');
+    if (err) console.error("Erro no DB:", err.message);
+    else console.log('Banco de dados conectado.');
 });
 
-db.run(`CREATE TABLE IF NOT EXISTS transactions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    description TEXT,
-    amount REAL,
-    type TEXT,
-    category TEXT,
-    date TEXT
-)`);
+db.serialize(() => {
+    // 1. Transações
+    db.run(`CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        description TEXT, amount REAL, type TEXT, category TEXT, date TEXT, paid INTEGER DEFAULT 0
+    )`);
 
-// --- ROTAS ---
-
-// 1. Buscar transações
-app.get('/api/transactions', (req, res) => {
-    db.all("SELECT * FROM transactions ORDER BY date DESC, id DESC", [], (err, rows) => {
-        if (err) return res.status(400).json({ error: err.message });
-        res.json(rows);
-    });
-});
-
-// 2. ROTA DA INTELIGÊNCIA ARTIFICIAL (ESTAVA FALTANDO ISSO!)
-app.post('/api/chat', (req, res) => {
-    const { question } = req.body;
-
-    // Busca dados para contexto
-    db.all("SELECT * FROM transactions", [], async (err, rows) => {
-        if (err) return res.status(500).json({ error: "Erro no banco" });
-
-        const income = rows.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-        const expense = rows.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
-        const balance = income - expense;
-        const recent = rows.slice(0, 5).map(t => `${t.date}: ${t.description} (R$ ${t.amount})`).join(", ");
-
-        const prompt = `
-            Atue como um consultor financeiro.
-            Dados do usuário:
-            - Saldo: R$ ${balance.toFixed(2)}
-            - Receitas: R$ ${income.toFixed(2)}
-            - Despesas: R$ ${expense.toFixed(2)}
-            - Últimas movimentações: ${recent}
-            
-            Pergunta do usuário: "${question}"
-            
-            Responda de forma curta, amigável e use emojis. Se a pergunta for sobre comprar algo, verifique se o saldo permite.
-        `;
-
-        try {
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-            res.json({ answer: text });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Erro na IA" });
+    // 2. Categorias
+    db.run(`CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE
+    )`, (err) => {
+        if (!err) {
+            const defaults = ["Alimentação", "Casa", "Transporte", "Lazer", "Saúde", "Contas Fixas", "Salário", "Investimento", "Outros"];
+            defaults.forEach(cat => db.run("INSERT OR IGNORE INTO categories (name) VALUES (?)", [cat]));
         }
     });
+
+    // 3. Objetivos (Goals)
+    db.run(`CREATE TABLE IF NOT EXISTS goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        target_amount REAL,
+        saved_cash REAL DEFAULT 0,
+        saved_bank REAL DEFAULT 0
+    )`);
 });
 
-// 3. Criar transação (Com recorrência/parcelas)
-app.post('/api/transactions', (req, res) => {
-    const { description, amount, type, category, date, isRecurring, recurrenceType, installments } = req.body;
-    
-    let loops = 1;
-    let isInstallment = false;
+// --- ROTAS DE CATEGORIAS ---
+app.get('/api/categories', (req, res) => { db.all("SELECT * FROM categories ORDER BY name", [], (err, rows) => { res.json(rows); }); });
+app.post('/api/categories', (req, res) => { db.run("INSERT INTO categories (name) VALUES (?)", [req.body.name], function(err) { res.json({ id: this.lastID }); }); });
 
+// --- ROTAS DE TRANSAÇÕES ---
+app.get('/api/transactions', (req, res) => { db.all("SELECT * FROM transactions ORDER BY date DESC, id DESC", [], (err, rows) => { res.json(rows); }); });
+app.post('/api/transactions', (req, res) => {
+    const { description, amount, type, category, date, isRecurring, recurrenceType, installments, paid } = req.body;
+    let loops = 1; let isInstallment = false;
     if (isRecurring) {
         if (recurrenceType === 'fixed') loops = 12; 
-        else if (recurrenceType === 'installments' && installments > 1) {
-            loops = parseInt(installments);
-            isInstallment = true;
-        }
+        else if (recurrenceType === 'installments' && installments > 1) { loops = parseInt(installments); isInstallment = true; }
     }
-
     db.serialize(() => {
-        const stmt = db.prepare("INSERT INTO transactions (description, amount, type, category, date) VALUES (?,?,?,?,?)");
-
+        const stmt = db.prepare("INSERT INTO transactions (description, amount, type, category, date, paid) VALUES (?,?,?,?,?,?)");
         for (let i = 0; i < loops; i++) {
-            let baseDate = date ? new Date(date) : new Date();
-            baseDate.setMonth(baseDate.getMonth() + i); 
+            let baseDate = date ? new Date(date) : new Date(); baseDate.setMonth(baseDate.getMonth() + i); 
             const dateString = baseDate.toISOString().split('T')[0];
-
-            let finalDescription = description;
-            if (isInstallment) finalDescription = `${description} (${i + 1}/${loops})`;
-
-            stmt.run(finalDescription, amount, type, category, dateString);
+            let finalDesc = description; if (isInstallment) finalDesc = `${description} (${i + 1}/${loops})`;
+            let statusPaid = (i === 0) ? (paid ? 1 : 0) : 0;
+            stmt.run(finalDesc, amount, type, category, dateString, statusPaid);
         }
-        
-        stmt.finalize((err) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ message: "Sucesso" });
-        });
+        stmt.finalize((err) => { if (err) return res.status(500).json({ error: err.message }); res.json({ message: "Sucesso" }); });
     });
 });
-
-// 4. Editar
 app.put('/api/transactions/:id', (req, res) => {
-    const { description, amount, type, category, date } = req.body;
-    const { id } = req.params;
-    const sql = `UPDATE transactions SET description = ?, amount = ?, type = ?, category = ?, date = ? WHERE id = ?`;
-    db.run(sql, [description, amount, type, category, date, id], function(err) {
-        if (err) return res.status(400).json({ error: err.message });
-        res.json({ message: "Atualizado" });
-    });
+    const { description, amount, type, category, date, paid } = req.body; const { id } = req.params;
+    db.run(`UPDATE transactions SET description=?, amount=?, type=?, category=?, date=?, paid=? WHERE id=?`, 
+    [description, amount, type, category, date, paid?1:0, id], function(err) { res.json({ message: "Atualizado" }); });
 });
+app.delete('/api/transactions/:id', (req, res) => { db.run("DELETE FROM transactions WHERE id = ?", req.params.id, function (err) { res.json({ message: "Deletado" }); }); });
 
-// 5. Deletar
-app.delete('/api/transactions/:id', (req, res) => {
-    const id = req.params.id;
-    db.run("DELETE FROM transactions WHERE id = ?", id, function (err) {
-        if (err) return res.status(400).json({ error: err.message });
-        res.json({ message: "Deletado" });
-    });
+// --- ROTAS DE OBJETIVOS ---
+app.get('/api/goals', (req, res) => { db.all("SELECT * FROM goals", [], (err, rows) => { res.json(rows); }); });
+app.post('/api/goals', (req, res) => {
+    const { name, target } = req.body;
+    db.run("INSERT INTO goals (name, target_amount, saved_cash, saved_bank) VALUES (?, ?, 0, 0)", 
+    [name, target], function(err) { res.json({ message: "Criado" }); });
 });
+app.put('/api/goals/:id/deposit', (req, res) => {
+    const { id } = req.params; const { amount, method } = req.body;
+    let sql = method === 'cash' ? "UPDATE goals SET saved_cash = saved_cash + ? WHERE id = ?" : "UPDATE goals SET saved_bank = saved_bank + ? WHERE id = ?";
+    db.run(sql, [amount, id], function(err) { res.json({ message: "Depósito realizado" }); });
+});
+app.delete('/api/goals/:id', (req, res) => { db.run("DELETE FROM goals WHERE id = ?", req.params.id, function(err) { res.json({ message: "Deletado" }); }); });
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+app.listen(PORT, () => { console.log(`Servidor rodando em http://localhost:${PORT}`); });

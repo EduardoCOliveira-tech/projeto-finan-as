@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Financeira</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-wallet"></i> Minhas Finanças</h1>
+            <div style="display:flex; gap:10px;">
+                <button id="theme-toggle" class="theme-btn"><i class="fas fa-moon"></i></button>
+                <button id="logout-btn" class="theme-btn" style="color:var(--danger-color); border-color:var(--danger-color);"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </header>
+
+        <div class="filter-container">
+            <div class="filter-group">
+                <i class="fas fa-calendar-alt"></i>
+                <input type="month" id="month-filter">
+            </div>
+            <div class="filter-group search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Buscar (ex: Uber)...">
+            </div>
+            <div class="actions">
+                <button id="clear-filter" class="btn-small btn-ghost" title="Limpar"><i class="fas fa-sync-alt"></i></button>
+                <button id="export-btn" class="btn-small btn-green" title="Exportar"><i class="fas fa-file-excel"></i> Exportar</button>
+            </div>
+        </div>
+
+        <div class="balance-container">
+            <div class="card income-card">
+                <h3>Receitas</h3>
+                <p id="money-plus" class="money plus">+ R$ 0,00</p>
+                <i class="fas fa-arrow-up icon-bg"></i>
+            </div>
+            <div class="card expense-card">
+                <h3>Despesas</h3>
+                <p id="money-minus" class="money minus">- R$ 0,00</p>
+                <i class="fas fa-arrow-down icon-bg"></i>
+            </div>
+            <div class="card total-card">
+                <h3>Saldo Atual</h3>
+                <p id="balance">R$ 0,00</p>
+                <i class="fas fa-coins icon-bg"></i>
+            </div>
+        </div>
+
+        <div class="budget-container card">
+            <div class="budget-header">
+                <h3><i class="fas fa-bullseye"></i> Meta de Gastos (Mês)</h3>
+                <div class="budget-input-group">
+                    <span>Meta: R$</span>
+                    <input type="number" id="budget-input" placeholder="0.00" onchange="updateBudget()">
+                </div>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="budget-bar" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            <div class="budget-info">
+                <small id="budget-text">Defina uma meta acima.</small>
+                <small id="budget-percent">0%</small>
+            </div>
+        </div>
+
+        <div class="goals-section">
+            <div class="section-header">
+                <h3><i class="fas fa-trophy"></i> Meus Objetivos</h3>
+                <button class="btn-small btn-ghost" onclick="openNewGoalModal()">
+                    <i class="fas fa-plus"></i> Novo Objetivo
+                </button>
+            </div>
+            <div class="goals-grid" id="goals-list"></div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="chart-card">
+                <h3>Distribuição</h3>
+                <div class="chart-controls">
+                    <label class="toggle-option">
+                        <input type="radio" name="chart-type" value="expense" checked onchange="refreshChartOnly()"> 
+                        <span>📉 Saídas</span>
+                    </label>
+                    <label class="toggle-option">
+                        <input type="radio" name="chart-type" value="income" onchange="refreshChartOnly()"> 
+                        <span>📈 Entradas</span>
+                    </label>
+                </div>
+                <div class="chart-box">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Evolução (Previsão Futura)</h3>
+                <div class="chart-box">
+                    <canvas id="evolutionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card top-expenses-card">
+                <h3>Top Categorias</h3>
+                <ul id="top-expenses-list"></ul>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="history-section">
+                <h3><i class="fas fa-history"></i> Histórico</h3>
+                <ul id="list" class="list"></ul>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-plus-circle"></i> Nova Transação</h3>
+                <form id="form">
+                    <input type="hidden" id="edit-id" value="">
+
+                    <div class="form-control">
+                        <label>Descrição</label>
+                        <input type="text" id="text" placeholder="Ex: Conta de Luz..." />
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-control">
+                            <label>Valor</label>
+                            <input type="number" id="amount" placeholder="0.00" step="0.01" />
+                        </div>
+                        <div class="form-control">
+                            <label>Data de Vencimento</label>
+                            <input type="date" id="date" />
+                        </div>
+                    </div>
+
+                    <div class="checkbox-control" style="margin-bottom: 15px;">
+                        <input type="checkbox" id="is-paid">
+                        <label for="is-paid" style="margin:0; cursor:pointer; font-weight:bold; color:var(--success-color);">
+                            <i class="fas fa-check-circle"></i> Já está pago/recebido?
+                        </label>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-control">
+                            <label>Tipo</label>
+                            <div class="custom-select-wrapper" id="type-select">
+                                <input type="hidden" id="type" value="expense">
+                                <div class="select-trigger" onclick="toggleSelect('type-select')">
+                                    <span id="selected-type-text">Despesa (-)</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="options-list">
+                                    <div class="option-item" onclick="selectOption('type', 'expense', 'Despesa (-)')">Despesa (-)</div>
+                                    <div class="option-item" onclick="selectOption('type', 'income', 'Receita (+)')">Receita (+)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label>Categoria</label>
+                            <div style="display: flex; gap: 10px;">
+                                <div class="custom-select-wrapper" id="category-select">
+                                    <input type="hidden" id="category" value="">
+                                    <div class="select-trigger" onclick="toggleSelect('category-select')">
+                                        <span id="selected-category-text">Selecione...</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="options-list" id="custom-cat-options"></div>
+                                </div>
+                                <button type="button" class="btn-add-cat" onclick="openCategoryModal()" title="Nova Categoria">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recurrence-section">
+                        <div class="checkbox-control">
+                            <input type="checkbox" id="is-recurring" onchange="toggleRecurrenceOptions()">
+                            <label for="is-recurring" style="margin:0; cursor:pointer;">Repetir / Parcelar?</label>
+                        </div>
+                        <div id="recurrence-options" class="hidden" style="margin-top: 10px; padding: 10px; background: var(--input-bg); border-radius: 8px; border: 1px dashed var(--input-border);">
+                            <div class="form-control">
+                                <label>Tipo</label>
+                                <div class="custom-select-wrapper" id="recurrence-type-select">
+                                    <input type="hidden" id="recurrence-type" value="fixed">
+                                    <div class="select-trigger" onclick="toggleSelect('recurrence-type-select')">
+                                        <span id="selected-recurrence-text">Fixo (Mensal)</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="options-list">
+                                        <div class="option-item" onclick="selectOption('recurrence', 'fixed', 'Fixo (Mensal)')">Fixo (Mensal)</div>
+                                        <div class="option-item" onclick="selectOption('recurrence', 'installments', 'Parcelado')">Parcelado</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-control hidden" id="installments-group">
+                                <label>Nº Parcelas</label>
+                                <input type="number" id="installments" value="2" min="2">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn">Salvar Transação</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="category-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Nova Categoria</h3>
+            <input type="text" id="new-category-name" placeholder="Ex: Games" autofocus>
+            <div class="modal-actions">
+                <button class="btn-small btn-ghost" onclick="closeCategoryModal()">Cancelar</button>
+                <button class="btn-small btn-green" onclick="saveNewCategory()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="new-goal-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Criar Objetivo</h3>
+            <div class="form-control">
+                <label>Nome (ex: PS5)</label>
+                <input type="text" id="goal-name" placeholder="Nome...">
+            </div>
+            <div class="form-control">
+                <label>Valor Total (R$)</label>
+                <input type="number" id="goal-target" placeholder="0.00" step="0.01">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-small btn-ghost" onclick="closeGoalModals()">Cancelar</button>
+                <button class="btn-small btn-green" onclick="saveNewGoal()">Criar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deposit-goal-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Adicionar Valor</h3>
+            <input type="hidden" id="deposit-goal-id">
+            <p id="deposit-goal-title" style="margin-bottom:15px; text-align:center; color:var(--text-secondary);"></p>
+            <div class="form-control">
+                <label>Valor (R$)</label>
+                <input type="number" id="deposit-amount" placeholder="0.00" step="0.01">
+            </div>
+            <div class="form-control">
+                <label>Origem:</label>
+                <div class="custom-select-wrapper" id="deposit-method-select">
+                    <input type="hidden" id="deposit-method" value="bank">
+                    <div class="select-trigger" onclick="toggleSelect('deposit-method-select')">
+                        <span id="selected-method-text">Banco / Pix</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="options-list">
+                        <div class="option-item" onclick="selectOption('deposit-method', 'bank', 'Banco / Pix')">Banco / Pix</div>
+                        <div class="option-item" onclick="selectOption('deposit-method', 'cash', 'Dinheiro Físico')">Dinheiro Físico</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-small btn-ghost" onclick="closeGoalModals()">Cancelar</button>
+                <button class="btn-small btn-green" onclick="confirmDeposit()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

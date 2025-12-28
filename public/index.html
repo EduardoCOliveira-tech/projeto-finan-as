@@ -3,272 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão Financeira</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Minhas Finanças - Controle Total</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png"> <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --dark: #2d3436;
+            --light: #f5f7fa;
+            --font: 'Poppins', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font); }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px;
+            backdrop-filter: blur(10px);
+            position: fixed; width: 100%; top: 0; z-index: 100;
+        }
+        .logo { font-size: 24px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        .nav-btn {
+            padding: 10px 25px; border-radius: 50px; text-decoration: none; font-weight: 600; transition: 0.3s;
+        }
+        .btn-login { border: 2px solid var(--primary); color: var(--primary); margin-right: 10px; }
+        .btn-register { background: var(--primary); color: white; border: 2px solid var(--primary); }
+        .btn-login:hover { background: var(--primary); color: white; }
+        .btn-register:hover { background: var(--secondary); border-color: var(--secondary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 10%;
+            padding-top: 80px;
+        }
+        .hero-text { max-width: 500px; }
+        .hero h1 { font-size: 48px; line-height: 1.2; margin-bottom: 20px; }
+        .hero p { font-size: 18px; color: #636e72; margin-bottom: 30px; }
+        .gradient-text {
+            background: -webkit-linear-gradient(45deg, var(--primary), #00b894);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-image {
+            width: 500px; height: 400px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.4);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 100px; color: var(--primary);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Features */
+        .features { padding: 80px 10%; text-align: center; background: white; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 50px; }
+        .feature-card { padding: 30px; border-radius: 20px; background: var(--light); transition: 0.3s; }
+        .feature-card:hover { transform: translateY(-10px); }
+        .feature-card i { font-size: 40px; color: var(--primary); margin-bottom: 20px; }
+        .feature-card h3 { margin-bottom: 10px; }
+
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+        
+        @media (max-width: 900px) {
+            .hero { flex-direction: column; text-align: center; justify-content: center; gap: 50px; }
+            .hero-image { width: 100%; max-width: 400px; height: 300px; }
+            nav { padding: 20px; }
+            .nav-btn { padding: 8px 15px; font-size: 14px; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-wallet"></i> Minhas Finanças</h1>
-            <button id="theme-toggle" class="theme-btn" title="Alternar Tema">
-                <i class="fas fa-moon"></i>
-            </button>
-        </header>
 
-        <div class="filter-container">
-            <div class="filter-group">
-                <i class="fas fa-calendar-alt"></i>
-                <input type="month" id="month-filter">
+    <nav>
+        <div class="logo"><i class="fas fa-wallet"></i> Finanças</div>
+        <div>
+            <a href="#" class="nav-btn btn-login" onclick="alert('Vamos configurar o Firebase primeiro!')">Entrar</a>
+            <a href="#" class="nav-btn btn-register" onclick="alert('Vamos configurar o Firebase primeiro!')">Criar Conta</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-text">
+            <h1>Organize seu dinheiro e realize seus <span class="gradient-text">Objetivos</span>.</h1>
+            <p>Controle despesas, defina metas como o seu PS5 e veja seu patrimônio crescer com gráficos inteligentes.</p>
+            <a href="#" class="nav-btn btn-register">Começar Agora Grátis</a>
+        </div>
+        <div class="hero-image">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+    </header>
+
+    <section class="features">
+        <h2>Por que usar?</h2>
+        <div class="grid">
+            <div class="feature-card">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>100% Online</h3>
+                <p>Acesse seus dados de qualquer lugar, tudo salvo na nuvem.</p>
             </div>
-            <div class="filter-group search-group">
-                <i class="fas fa-search"></i>
-                <input type="text" id="search-input" placeholder="Buscar (ex: Uber)...">
+            <div class="feature-card">
+                <i class="fas fa-trophy"></i>
+                <h3>Objetivos Reais</h3>
+                <p>Crie metas separadas para Dinheiro Físico e Banco.</p>
             </div>
-            <div class="actions">
-                <button id="clear-filter" class="btn-small btn-ghost" title="Limpar"><i class="fas fa-sync-alt"></i></button>
-                <button id="export-btn" class="btn-small btn-green" title="Exportar"><i class="fas fa-file-excel"></i> Exportar</button>
+            <div class="feature-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Previsão Futura</h3>
+                <p>Veja gráficos que mostram se você vai fechar o mês no azul.</p>
             </div>
         </div>
+    </section>
 
-        <div class="balance-container">
-            <div class="card income-card">
-                <h3>Receitas</h3>
-                <p id="money-plus" class="money plus">+ R$ 0,00</p>
-                <i class="fas fa-arrow-up icon-bg"></i>
-            </div>
-            <div class="card expense-card">
-                <h3>Despesas</h3>
-                <p id="money-minus" class="money minus">- R$ 0,00</p>
-                <i class="fas fa-arrow-down icon-bg"></i>
-            </div>
-            <div class="card total-card">
-                <h3>Saldo Atual</h3>
-                <p id="balance">R$ 0,00</p>
-                <i class="fas fa-coins icon-bg"></i>
-            </div>
-        </div>
-
-        <div class="budget-container card">
-            <div class="budget-header">
-                <h3><i class="fas fa-bullseye"></i> Meta de Gastos (Mês)</h3>
-                <div class="budget-input-group">
-                    <span>Meta: R$</span>
-                    <input type="number" id="budget-input" placeholder="0.00" onchange="updateBudget()">
-                </div>
-            </div>
-            <div class="progress-bar-bg">
-                <div id="budget-bar" class="progress-bar-fill" style="width: 0%"></div>
-            </div>
-            <div class="budget-info">
-                <small id="budget-text">Defina uma meta acima.</small>
-                <small id="budget-percent">0%</small>
-            </div>
-        </div>
-
-        <div class="goals-section">
-            <div class="section-header">
-                <h3><i class="fas fa-trophy"></i> Meus Objetivos</h3>
-                <button class="btn-small btn-ghost" onclick="openNewGoalModal()">
-                    <i class="fas fa-plus"></i> Novo Objetivo
-                </button>
-            </div>
-            <div class="goals-grid" id="goals-list"></div>
-        </div>
-
-        <div class="dashboard-grid">
-            <div class="chart-card">
-                <h3>Distribuição</h3>
-                <div class="chart-controls">
-                    <label class="toggle-option">
-                        <input type="radio" name="chart-type" value="expense" checked onchange="refreshChartOnly()"> 
-                        <span>📉 Saídas</span>
-                    </label>
-                    <label class="toggle-option">
-                        <input type="radio" name="chart-type" value="income" onchange="refreshChartOnly()"> 
-                        <span>📈 Entradas</span>
-                    </label>
-                </div>
-                <div class="chart-box">
-                    <canvas id="expenseChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <h3>Evolução (Previsão Futura)</h3>
-                <div class="chart-box">
-                    <canvas id="evolutionChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-card top-expenses-card">
-                <h3>Top Categorias</h3>
-                <ul id="top-expenses-list"></ul>
-            </div>
-        </div>
-
-        <div class="main-grid">
-            <div class="history-section">
-                <h3><i class="fas fa-history"></i> Histórico</h3>
-                <ul id="list" class="list"></ul>
-            </div>
-
-            <div class="form-section">
-                <h3><i class="fas fa-plus-circle"></i> Nova Transação</h3>
-                <form id="form">
-                    <input type="hidden" id="edit-id" value="">
-
-                    <div class="form-control">
-                        <label>Descrição</label>
-                        <input type="text" id="text" placeholder="Ex: Conta de Luz..." />
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-control">
-                            <label>Valor</label>
-                            <input type="number" id="amount" placeholder="0.00" step="0.01" />
-                        </div>
-                        <div class="form-control">
-                            <label>Data de Vencimento</label>
-                            <input type="date" id="date" />
-                        </div>
-                    </div>
-
-                    <div class="checkbox-control" style="margin-bottom: 15px;">
-                        <input type="checkbox" id="is-paid">
-                        <label for="is-paid" style="margin:0; cursor:pointer; font-weight:bold; color:var(--success-color);">
-                            <i class="fas fa-check-circle"></i> Já está pago/recebido?
-                        </label>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-control">
-                            <label>Tipo</label>
-                            <div class="custom-select-wrapper" id="type-select">
-                                <input type="hidden" id="type" value="expense">
-                                <div class="select-trigger" onclick="toggleSelect('type-select')">
-                                    <span id="selected-type-text">Despesa (-)</span>
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                                <div class="options-list">
-                                    <div class="option-item" onclick="selectOption('type', 'expense', 'Despesa (-)')">Despesa (-)</div>
-                                    <div class="option-item" onclick="selectOption('type', 'income', 'Receita (+)')">Receita (+)</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-control">
-                            <label>Categoria</label>
-                            <div style="display: flex; gap: 10px;">
-                                <div class="custom-select-wrapper" id="category-select">
-                                    <input type="hidden" id="category" value="">
-                                    <div class="select-trigger" onclick="toggleSelect('category-select')">
-                                        <span id="selected-category-text">Selecione...</span>
-                                        <i class="fas fa-chevron-down"></i>
-                                    </div>
-                                    <div class="options-list" id="custom-cat-options"></div>
-                                </div>
-                                <button type="button" class="btn-add-cat" onclick="openCategoryModal()" title="Nova Categoria">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="recurrence-section">
-                        <div class="checkbox-control">
-                            <input type="checkbox" id="is-recurring" onchange="toggleRecurrenceOptions()">
-                            <label for="is-recurring" style="margin:0; cursor:pointer;">Repetir / Parcelar?</label>
-                        </div>
-                        <div id="recurrence-options" class="hidden" style="margin-top: 10px; padding: 10px; background: var(--input-bg); border-radius: 8px; border: 1px dashed var(--input-border);">
-                            <div class="form-control">
-                                <label>Tipo</label>
-                                <div class="custom-select-wrapper" id="recurrence-type-select">
-                                    <input type="hidden" id="recurrence-type" value="fixed">
-                                    <div class="select-trigger" onclick="toggleSelect('recurrence-type-select')">
-                                        <span id="selected-recurrence-text">Fixo (Mensal)</span>
-                                        <i class="fas fa-chevron-down"></i>
-                                    </div>
-                                    <div class="options-list">
-                                        <div class="option-item" onclick="selectOption('recurrence', 'fixed', 'Fixo (Mensal)')">Fixo (Mensal)</div>
-                                        <div class="option-item" onclick="selectOption('recurrence', 'installments', 'Parcelado')">Parcelado</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-control hidden" id="installments-group">
-                                <label>Nº Parcelas</label>
-                                <input type="number" id="installments" value="2" min="2">
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn">Salvar Transação</button>
-                </form>
-            </div>
+    <div id="auth-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:2000; backdrop-filter:blur(5px);">
+        <div style="background:white; padding:40px; border-radius:20px; width:90%; max-width:400px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+            <h2 id="auth-title" style="margin-bottom:20px; color:#6c5ce7;">Entrar</h2>
+            <input type="email" id="auth-email" placeholder="Seu e-mail" style="width:100%; padding:15px; margin-bottom:15px; border:1px solid #ddd; border-radius:10px;">
+            <input type="password" id="auth-password" placeholder="Sua senha" style="width:100%; padding:15px; margin-bottom:20px; border:1px solid #ddd; border-radius:10px;">
+            
+            <button id="auth-action-btn" style="width:100%; padding:15px; background:#6c5ce7; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:16px;">Entrar</button>
+            
+            <p style="margin-top:15px; font-size:14px; color:#666; cursor:pointer;" onclick="toggleAuthMode()">
+                <span id="auth-switch-text">Não tem conta? Crie agora.</span>
+            </p>
+            <p style="margin-top:10px; font-size:12px; color:#ff7675; cursor:pointer;" onclick="document.getElementById('auth-modal').style.display='none'">Fechar</p>
         </div>
     </div>
 
-    <div id="category-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Nova Categoria</h3>
-            <input type="text" id="new-category-name" placeholder="Ex: Games" autofocus>
-            <div class="modal-actions">
-                <button class="btn-small btn-ghost" onclick="closeCategoryModal()">Cancelar</button>
-                <button class="btn-small btn-green" onclick="saveNewCategory()">Salvar</button>
-            </div>
-        </div>
-    </div>
+    <script type="module" src="landing.js"></script>
+</body>
+</html>
 
-    <div id="new-goal-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Criar Objetivo</h3>
-            <div class="form-control">
-                <label>Nome (ex: PS5)</label>
-                <input type="text" id="goal-name" placeholder="Nome...">
-            </div>
-            <div class="form-control">
-                <label>Valor Total (R$)</label>
-                <input type="number" id="goal-target" placeholder="0.00" step="0.01">
-            </div>
-            <div class="modal-actions">
-                <button class="btn-small btn-ghost" onclick="closeGoalModals()">Cancelar</button>
-                <button class="btn-small btn-green" onclick="saveNewGoal()">Criar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="deposit-goal-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Adicionar Valor</h3>
-            <input type="hidden" id="deposit-goal-id">
-            <p id="deposit-goal-title" style="margin-bottom:15px; text-align:center; color:var(--text-secondary);"></p>
-            <div class="form-control">
-                <label>Valor (R$)</label>
-                <input type="number" id="deposit-amount" placeholder="0.00" step="0.01">
-            </div>
-            <div class="form-control">
-                <label>Origem:</label>
-                <div class="custom-select-wrapper" id="deposit-method-select">
-                    <input type="hidden" id="deposit-method" value="bank">
-                    <div class="select-trigger" onclick="toggleSelect('deposit-method-select')">
-                        <span id="selected-method-text">Banco / Pix</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="options-list">
-                        <div class="option-item" onclick="selectOption('deposit-method', 'bank', 'Banco / Pix')">Banco / Pix</div>
-                        <div class="option-item" onclick="selectOption('deposit-method', 'cash', 'Dinheiro Físico')">Dinheiro Físico</div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn-small btn-ghost" onclick="closeGoalModals()">Cancelar</button>
-                <button class="btn-small btn-green" onclick="confirmDeposit()">Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast-container"></div>
-    <script src="script.js"></script>
 </body>
 </html>
